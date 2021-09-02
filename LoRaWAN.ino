@@ -33,7 +33,7 @@ static osjob_t sendjob;
 
 // Schedule TX every this many seconds (might become longer due to duty
 // cycle limitations).
-const unsigned TX_INTERVAL = 10;
+const unsigned TX_INTERVAL = 25;
 
 void Data()
 {
@@ -174,7 +174,7 @@ void setup() {
     LMIC.dn2Dr = DR_SF9;
 
     // Set data rate and transmit power for uplink (note: second paramenter 'txpow' seems to be ignored by the library)
-    LMIC_setDrTxpow(DR_SF12,14);
+    LMIC_setDrTxpow(DR_SF11,14);
 
     // Start job
     do_send(&sendjob);
