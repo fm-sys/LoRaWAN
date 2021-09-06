@@ -2,7 +2,7 @@
 #include <hal/hal.h>
 #include <SPI.h>
 
-// based on https://github.com/akarsh98/Dragino-Gateway-Demo-1
+// copied from https://github.com/akarsh98/Dragino-Gateway-Demo-1
 
 
 // LoRaWAN NwkSKey, network session key

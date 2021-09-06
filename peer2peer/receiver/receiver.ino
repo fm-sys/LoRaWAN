@@ -62,8 +62,12 @@ void loop()
       //Receive the message
       digitalWrite(LED, HIGH);
       RH_RF95::printBuffer("Received: ", buf, len);
-      Serial.print("Got: ");
-      Serial.println((char*)buf);
+      Serial.print("Got: '");
+      Serial.print((char*)buf);
+      Serial.println("'");
+
+      Serial.print("RSSI: ");
+      Serial.println(rf95.lastRssi(), DEC);
       
       // Send a reply
       uint8_t data[] = "Ack";

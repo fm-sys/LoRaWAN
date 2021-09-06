@@ -5,22 +5,16 @@ in the book "Beginning LoRa Radio Networks with Arduino: Build Long Range, Low P
 */
 #include <SPI.h> // Serial Pheripheral Interface library
 #include <RH_RF95.h> //RadioHead RFM9x library
-#include "DHT.h" //DHT temperature and humidity sensor library - todo: remove! We want to use different sensors
 
 //Radio pinout setup
-#define RFM95_CS 4 //CS pin is connected to Arduino digital pin 4
-#define RFM95_RST 2 //RST pin is connected to Arduino digital pin 2
-#define RFM95_INT 3 //G0 pin is connected to Arduino digital pin 3
-//DHT11 sensor pinout setup
-#define DHTPIN 8     // Data out pin is connected to Arduino digital pin 8
+#define RFM95_CS 10
+#define RFM95_RST 9
+#define RFM95_INT 2
 
 #define RF95_FREQ 868.0
 
-#define DHTTYPE DHT11   // DHT 11 sensor
-
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
-DHT dht(DHTPIN, DHTTYPE);
 
 void setup()
 {
@@ -50,28 +44,16 @@ void setup()
 
   rf95.setTxPower(23, false);
 
-  dht.begin();
 }
 
 void loop()
 {
-
-
-
-  float t = dht.readTemperature();
-
-  if (isnan(t)) {
-    Serial.println("Failed to read from DHT sensor!");
-    return;
-  }
-
-
-  Serial.println("Sending to receiver");
   
-  char radiopacket[20]= "";
+  char radiopacket[20]= "hello world";
   
-  dtostrf(t,5,2,radiopacket);
-  Serial.print("Sending "); Serial.println(radiopacket);
+  //dtostrf(t,5,2,radiopacket);
+
+  Serial.print("Send '"); Serial.print(radiopacket); Serial.println("'");
   
 
   Serial.println("Sending..."); delay(10);
@@ -105,5 +87,5 @@ void loop()
   {
     Serial.println("No reply, is the receiver running?");
   }
-  delay(1000);
+  delay(15 * 1000);
 }
