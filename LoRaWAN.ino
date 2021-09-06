@@ -31,8 +31,7 @@ void os_getDevKey (u1_t* buf) { }
 static uint8_t mydata[3] = {0x00,0x00,0x00};
 static osjob_t sendjob;
 
-// Schedule TX every this many seconds (might become longer due to duty
-// cycle limitations).
+// Schedule TX every this many seconds (might become longer due to duty cycle limitations).
 const unsigned TX_INTERVAL = 25;
 
 void Data()
