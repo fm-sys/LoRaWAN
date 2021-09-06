@@ -1,5 +1,5 @@
-#include "_libs/arduino-lmic/src/lmic.h"
-#include "_libs/arduino-lmic/src/hal/hal.h"
+#include <lmic.h>
+#include <hal/hal.h>
 #include <SPI.h>
 
 // based on https://github.com/akarsh98/Dragino-Gateway-Demo-1

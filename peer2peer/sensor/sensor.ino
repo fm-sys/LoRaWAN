@@ -5,7 +5,7 @@ in the book "Beginning LoRa Radio Networks with Arduino: Build Long Range, Low P
 */
 #include <SPI.h> // Serial Pheripheral Interface library
 #include <RH_RF95.h> //RadioHead RFM9x library
-#include "DHT.h" //DHT temperature and humidity sensor library
+#include "DHT.h" //DHT temperature and humidity sensor library - todo: remove! We want to use different sensors
 
 //Radio pinout setup
 #define RFM95_CS 4 //CS pin is connected to Arduino digital pin 4
@@ -14,7 +14,7 @@ in the book "Beginning LoRa Radio Networks with Arduino: Build Long Range, Low P
 //DHT11 sensor pinout setup
 #define DHTPIN 8     // Data out pin is connected to Arduino digital pin 8
 
-#define RF95_FREQ 433.0
+#define RF95_FREQ 868.0
 
 #define DHTTYPE DHT11   // DHT 11 sensor
 
