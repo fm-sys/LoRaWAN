@@ -1,7 +1,9 @@
 /*
-Copied from https://github.com/Apress/begin-lora-radio-networks-with-arduino/blob/master/Chapter%204/receiver.ino
+Copied from https://github.com/Apress/begin-lora-radio-networks-with-arduino/blob/master/Chapter%204/receiver.ino, which corresponds to the code published 
+in the book "Beginning LoRa Radio Networks with Arduino: Build Long Range, Low Power Wireless IoT Networks by Pradeeka Seneviratne (Apress, 2019)".
 
-This example source code was based on the original code published by Adafruit availabe at https://learn.adafruit.com/adafruit-rfm69hcw-and-rfm96-rfm95-rfm98-lora-packet-padio-breakouts/rfm9x-test
+The example source code was based on the original code published by Adafruit availabe at https://learn.adafruit.com/adafruit-rfm69hcw-and-rfm96-rfm95-rfm98-lora-packet-padio-breakouts/rfm9x-test
+RadioHead Packet Radio library for embedded microprocessors - documentation: http://www.airspayce.com/mikem/arduino/RadioHead/
 */
 #include <SPI.h>
 #include <RH_RF95.h>
