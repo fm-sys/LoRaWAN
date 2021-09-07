@@ -70,10 +70,10 @@ void loop()
       Serial.println(rf95.lastRssi(), DEC);
       
       // Send a reply
-      uint8_t data[] = "Ack";
+      uint8_t data[] = "Hi";
       rf95.send(data, sizeof(data));
       rf95.waitPacketSent();
-      Serial.println("Sent a reply");
+      Serial.println("Reply was sent");
       digitalWrite(LED, LOW);
     }
     else

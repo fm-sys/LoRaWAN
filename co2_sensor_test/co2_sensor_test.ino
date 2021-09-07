@@ -25,7 +25,7 @@ void setup() {
     mySerial.begin(9600);                                   // Device to MH-Z19 Serial baudrate (should not be changed)
     myMHZ19.begin(mySerial);                                // *Serial(Stream) refence must be passed to library begin(). 
 
-    myMHZ19.autoCalibration(false);                              // Turn auto calibration ON (OFF autoCalibration(false))
+    myMHZ19.autoCalibration();                              // Turn auto calibration ON (OFF autoCalibration(false))
 }
 
 void loop() {
@@ -36,7 +36,7 @@ void loop() {
         if below background CO2 levels or above range (useful to validate sensor). You can use the 
         usual documented command with getCO2(false) */
 
-        CO2 = myMHZ19.getCO2(false);                             // Request CO2 (as ppm)
+        CO2 = myMHZ19.getCO2();                             // Request CO2 (as ppm)
         
         Serial.print("CO2 (ppm): ");                      
         Serial.println(CO2);                                

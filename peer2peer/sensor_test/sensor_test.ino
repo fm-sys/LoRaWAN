@@ -3,7 +3,6 @@ Copied from https://github.com/Apress/begin-lora-radio-networks-with-arduino/blo
 in the book "Beginning LoRa Radio Networks with Arduino: Build Long Range, Low Power Wireless IoT Networks by Pradeeka Seneviratne (Apress, 2019)".
 
 */
-#include <SPI.h> // Serial Pheripheral Interface library
 #include <RH_RF95.h> //RadioHead RFM9x library
 
 //Radio pinout setup
@@ -73,8 +72,9 @@ void loop()
     // Should be a reply message for us now
     if (rf95.recv(buf, &len))
     {
-      Serial.print("Got reply: ");
-      Serial.println((char*)buf);
+      Serial.print("Got reply: '");
+      Serial.print((char*)buf);
+      Serial.println("'");
       Serial.print("RSSI: ");
       Serial.println(rf95.lastRssi(), DEC);
     }
@@ -87,5 +87,5 @@ void loop()
   {
     Serial.println("No reply, is the receiver running?");
   }
-  delay(15 * 1000);
+  delay(30 * 1000);
 }
