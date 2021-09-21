@@ -44,7 +44,10 @@ void setup()
     Serial.println("Can't set the specifide frequency");
     while (1);
   }
-  Serial.print("Set Freq to: "); Serial.println(RF95_FREQ);
+  Serial.print("Set Freq to: "); 
+  Serial.println(RF95_FREQ);
+
+  Serial.println("----------------------------");
  
   rf95.setTxPower(23, false);
 }
@@ -61,9 +64,9 @@ void loop()
     {
       //Receive the message
       digitalWrite(LED, HIGH);
-      RH_RF95::printBuffer("Received: ", buf, len);
+      //RH_RF95::printBuffer("Received: ", buf, len);
       //Serial.print("Got: '");
-      Serial.print((char*)buf);
+      Serial.println((char*)buf);
       //Serial.println("'");
 
       //Serial.print("RSSI: ");

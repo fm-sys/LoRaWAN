@@ -19,13 +19,14 @@ Temp messure DS18B20: https://www.youtube.com/watch?v=UY4zOXchK4w
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
 //temp messure pins
-float currentTemperature = 0.0;  // define the current temperature variable
-int oneWireBusPin = 13;          // define the 1 wire bus pin
+float currentTemperature = 0.0;
+int oneWireBusPin = 3;
 
 
 OneWire oneWireBus(oneWireBusPin);                 // create an instance of the OneWire Library and define the oneWireBusPin in it
 DallasTemperature temperatureSensor(&oneWireBus);  // create an instance of the Dallastemperature Library and define the OneWire instance oneWireBus in it
 DeviceAddress temperatureSensorAddress;            // temperatureDeviceAddress is an uint8_t array [8]
+int connectedDevicesNomber = 0;
 
 void setup() {
   pinMode(RFM95_RST, OUTPUT);
@@ -36,6 +37,35 @@ void setup() {
   Serial.begin(9600);
   delay(100);
 
+
+
+
+
+
+
+  temperatureSensor.begin();  // start the bus
+  connectedDevicesNomber = temperatureSensor.getDeviceCount();
+  temperatureSensor.getAddress(temperatureSensorAddress, 0);
+  printDeviceAddress(temperatureSensorAddress);
+
+
+  if (temperatureSensor.setResolution(temperatureSensorAddress, 12, false) == true) {  // set resolution of a device to 9, 10, 11, or 12 bits. If new resolution is out of range, 9 bits is used.
+    Serial.print("Temp resolution successfully set to ");
+    Serial.print(temperatureSensor.getResolution(temperatureSensorAddress));  // get the resolution of a device with a given address
+    Serial.println(" bit");
+  } else {
+    Serial.println("Temp resolution configuration failed ");
+    Serial.print("Temp resolution automatically set to ");
+    Serial.print(temperatureSensor.getResolution(temperatureSensorAddress));  // get the resolution of a device with a given address
+    Serial.println(" bit");
+  }
+
+ Serial.print("Temperature: ");
+ Serial.print(temperatureSensor.getTempC(temperatureSensorAddress));
+ Serial.println(" C");
+
+
+
   digitalWrite(RFM95_RST, LOW);
   delay(10);
   digitalWrite(RFM95_RST, HIGH);
@@ -44,7 +74,7 @@ void setup() {
   while (!rf95.init()) {
     Serial.println("initializing…");
   }
-  Serial.println("initialisation succeeded");
+  Serial.println("LoRa initialisation succeeded");
 
   if (!rf95.setFrequency(RF95_FREQ)) {
     Serial.println("setFrequency failed");
@@ -52,26 +82,14 @@ void setup() {
   Serial.print("Set Freq to: ");
   Serial.println(RF95_FREQ);
 
-  rf95.setTxPower(23, false);
+// This sets the power of the transciever. max is 23 apparantly.
+// Warning: setting Tx power to 20 runs the risk of making your chip very hot!  Datasheet cautions not to use a duty cycle of more than 1%.
+rf95.setTxPower(15, false);
 
 
 
 
-  temperatureSensor.begin();  // start the bus
-  temperatureSensor.getDeviceCount();
-  temperatureSensor.getAddress(temperatureSensorAddress, 0);
 
-
-  if (temperatureSensor.setResolution(temperatureSensorAddress, 12, false) == true) {  // set resolution of a device to 9, 10, 11, or 12 bits. If new resolution is out of range, 9 bits is used.
-    Serial.print("Resolution successfully set to ");
-    Serial.print(temperatureSensor.getResolution(temperatureSensorAddress));  // get the resolution of a device with a given address
-    Serial.println(" bit");
-  } else {
-    Serial.println("Resolution configuration failed ");
-    Serial.print("Resolution automatically set to ");
-    Serial.print(temperatureSensor.getResolution(temperatureSensorAddress));  // get the resolution of a device with a given address
-    Serial.println(" bit");
-  }
 }
 
 void loop() {
@@ -92,10 +110,23 @@ void loop() {
 
   rf95.send((uint8_t *)radiopacket, 20);
 
-  Serial.println("Waiting for packet to complete...");
+  Serial.print("Waiting for packet to complete...");
   delay(10);
   rf95.waitPacketSent();
+  Serial.println("Done!");
 
 
-  delay(30 * 1000);
+
+  delay(10 * 1000); // sec in ms
+}
+
+void printDeviceAddress(DeviceAddress deviceAddress){
+  for (int i = 0; i < 8; i++)
+  {
+    Serial.print("0x");
+    if (deviceAddress[i] < 0x10) Serial.print("0");
+    Serial.print(deviceAddress[i], HEX);
+    if (i < 7) Serial.print(", ");
+  }
+  Serial.println("");
 }
