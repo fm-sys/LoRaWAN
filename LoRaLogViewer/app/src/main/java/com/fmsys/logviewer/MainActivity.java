@@ -6,8 +6,16 @@ import androidx.core.content.ContextCompat;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.drawable.Drawable;
+import android.icu.util.Calendar;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.LimitLine;
@@ -20,7 +28,13 @@ import com.github.mikephil.charting.formatter.IFillFormatter;
 import com.github.mikephil.charting.interfaces.dataprovider.LineDataProvider;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -42,7 +56,6 @@ public class MainActivity extends AppCompatActivity {
 
         // enable touch gestures
         chart.setTouchEnabled(true);
-
         chart.setDrawGridBackground(true);
 
 //        // create marker to display box when values are selected
@@ -58,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         XAxis xAxis = chart.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
 
             // vertical grid lines
             //xAxis.enableGridDashedLine(10f, 10f, 0f);
@@ -103,9 +117,6 @@ public class MainActivity extends AppCompatActivity {
         // add data
         setData();
 
-        // draw points over time
-        chart.animateXY(1000, 1000);
-
         // get the legend (only possible after setting data)
         Legend l = chart.getLegend();
 
@@ -116,63 +127,75 @@ public class MainActivity extends AppCompatActivity {
 
     private void setData() {
 
-        ArrayList<Entry> values = new ArrayList<>();
 
-        for (int x = 0; x < 45; x++) {
+        RequestQueue queue = Volley.newRequestQueue(this);
+        String url ="https://iotplotter.com/api/v2/feed/829369784150976580";
 
-            float y = (float) (Math.random() * (float) 180) - 30;
-            values.add(new Entry(x, y));
-        }
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                response -> {
+                    ArrayList<Entry> values = new ArrayList<>();
+
+                    try {
+                        Log.e("RAWDATA", response);
+                        JSONObject responseObject = new JSONObject(response);
+                        JSONArray js = responseObject.names();  //getJSONObject("commit").getJSONObject("committer").getString("date");
+                        assert js != null;
+                        Log.e("DATA", js.toString());
+                        for (int i = 0; i < js.length(); i++) {
+                            JSONObject dataObject = responseObject.getJSONObject(js.getString(i)).getJSONObject("data");
+                            Log.e("DATA"+i, dataObject.toString());
+
+                            values.add(new Entry(js.getInt(i), (float) dataObject.getDouble("Temperatur")));
+
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    LineDataSet set1 = (LineDataSet) chart.getData().getDataSetByIndex(0);
+
+
+                    set1.setValues(values);
+                    set1.notifyDataSetChanged();
+                    chart.getData().notifyDataChanged();
+                    chart.notifyDataSetChanged();
+
+                    // draw points over time
+                    chart.animateXY(3000, 0, Easing.EaseOutCubic);
+
+
+                }, error -> Log.e("API error", error.toString()));
+
+        queue.add(stringRequest);
+
 
         LineDataSet set1;
 
-        if (chart.getData() != null &&
-                chart.getData().getDataSetCount() > 0) {
+        if (chart.getData() != null && chart.getData().getDataSetCount() > 0) {
             set1 = (LineDataSet) chart.getData().getDataSetByIndex(0);
-            set1.setValues(values);
+            set1.setValues(new ArrayList<>());
             set1.notifyDataSetChanged();
             chart.getData().notifyDataChanged();
             chart.notifyDataSetChanged();
         } else {
             // create a dataset and give it a type
-            set1 = new LineDataSet(values, "DataSet 1");
-
-            set1.setDrawIcons(false);
-
-            // draw dashed line
-            set1.enableDashedLine(10f, 5f, 0f);
+            set1 = new LineDataSet(new ArrayList<>(), "Temperatur (in C°)");
 
             // black lines and points
             set1.setColor(Color.BLACK);
-            set1.setCircleColor(Color.BLACK);
 
-            // line thickness and point size
-            set1.setLineWidth(1f);
-            set1.setCircleRadius(3f);
-
-            // draw points as solid circles
-            set1.setDrawCircleHole(false);
+            // line thickness
+            set1.setLineWidth(2f);
+            set1.setDrawCircles(false);
 
             // customize legend entry
-            set1.setFormLineWidth(1f);
-            set1.setFormLineDashEffect(new DashPathEffect(new float[]{10f, 5f}, 0f));
+            set1.setFormLineWidth(2f);
             set1.setFormSize(15.f);
 
-            // text size of values
-            set1.setValueTextSize(9f);
+            // text size of values: 0 -> no text
+            set1.setValueTextSize(0f);
 
-            // draw selection line as dashed
-            set1.enableDashedHighlightLine(10f, 5f, 0f);
-
-            // set the filled area
-            //set1.setDrawFilled(true);
-            //set1.setFillFormatter((dataSet, dataProvider) -> chart.getAxisLeft().getAxisMinimum());
-
-            // set color of filled area
-
-                //Drawable drawable = ContextCompat.getDrawable(this, R.drawable.fade_red);
-                //set1.setFillDrawable(drawable);
-
+            set1.setHighlightEnabled(false);
 
             ArrayList<ILineDataSet> dataSets = new ArrayList<>();
             dataSets.add(set1); // add the data sets
