@@ -2,7 +2,9 @@ package com.fmsys.logviewer;
 
 import android.app.Dialog;
 import android.graphics.Color;
+import android.icu.text.SimpleDateFormat;
 import android.os.Bundle;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,6 +35,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -160,9 +163,13 @@ public class MainActivity extends AppCompatActivity {
                     chart.animateY(500, Easing.EaseOutCubic);
 
                     Entry latestEntry = values.get(values.size() - 1);
+                    Date lastUpdate = new Date((long) (latestEntry.getX() * 1000));
 
-                    ((TextView) findViewById(R.id.last_update)).setText(new Date((long) (latestEntry.getX() * 1000)).toString());
-                    ((TextView) findViewById(R.id.last_update)).setText(latestEntry.getY() + " °C");
+
+                    ((TextView) findViewById(R.id.last_update)).setText(DateUtils.isToday(lastUpdate.getTime()) ?
+                            new SimpleDateFormat("HH:mm", Locale.GERMANY).format(lastUpdate) :
+                            new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format(lastUpdate));
+                    ((TextView) findViewById(R.id.current_value)).setText(latestEntry.getY() + " °C");
 
 
                 }, error -> Toast.makeText(MainActivity.this, error.getMessage(), Toast.LENGTH_LONG).show());
@@ -182,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
             // line thickness
             set1.setLineWidth(4f);
             set1.setDrawCircles(false);
-            set1.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+            //set1.setMode(LineDataSet.Mode.HORIZONTAL_BEZIER);
 
             // customize legend entry
             set1.setFormLineWidth(2f);
