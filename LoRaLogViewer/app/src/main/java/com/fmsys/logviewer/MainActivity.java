@@ -1,25 +1,16 @@
 package com.fmsys.logviewer;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
-
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.graphics.Color;
-import android.graphics.DashPathEffect;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.Drawable;
-import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -34,15 +25,12 @@ import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.formatter.IFillFormatter;
-import com.github.mikephil.charting.interfaces.dataprovider.LineDataProvider;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -169,7 +157,12 @@ public class MainActivity extends AppCompatActivity {
                     chart.notifyDataSetChanged();
 
                     // draw points over time
-                    //chart.animateXY(3000, 0, Easing.EaseOutCubic);
+                    chart.animateY(500, Easing.EaseOutCubic);
+
+                    Entry latestEntry = values.get(values.size() - 1);
+
+                    ((TextView) findViewById(R.id.last_update)).setText(new Date((long) (latestEntry.getX() * 1000)).toString());
+                    ((TextView) findViewById(R.id.last_update)).setText(latestEntry.getY() + " °C");
 
 
                 }, error -> Toast.makeText(MainActivity.this, error.getMessage(), Toast.LENGTH_LONG).show());
@@ -181,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (chart.getData() == null || chart.getData().getDataSetCount() <= 0) {
             // create a dataset and give it a type
-            set1 = new LineDataSet(new ArrayList<>(), "Temperatur (in C°)");
+            set1 = new LineDataSet(new ArrayList<>(), "Temperatur (in °C)");
 
             // black lines and points
             set1.setColor(Color.BLACK);

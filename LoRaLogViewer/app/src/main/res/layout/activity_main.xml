@@ -39,7 +39,7 @@
         android:textSize="36sp"
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
-        tools:text="23.75 C°"/>
+        tools:text="23.75 °C"/>
 
     <TextView
         android:id="@+id/current_value_desc"
