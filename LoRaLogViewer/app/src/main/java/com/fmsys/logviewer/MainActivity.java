@@ -1,14 +1,24 @@
 package com.fmsys.logviewer;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -136,15 +146,11 @@ public class MainActivity extends AppCompatActivity {
                     ArrayList<Entry> values = new ArrayList<>();
 
                     try {
-                        Log.e("RAWDATA", response);
                         JSONObject responseObject = new JSONObject(response);
                         JSONArray js = responseObject.names();  //getJSONObject("commit").getJSONObject("committer").getString("date");
                         assert js != null;
-                        Log.e("DATA", js.toString());
                         for (int i = 0; i < js.length(); i++) {
                             JSONObject dataObject = responseObject.getJSONObject(js.getString(i)).getJSONObject("data");
-                            Log.e("DATA"+i, dataObject.toString());
-
                             values.add(new Entry(js.getInt(i), (float) dataObject.getDouble("Temperatur")));
 
                         }
@@ -154,6 +160,7 @@ public class MainActivity extends AppCompatActivity {
 
                     LineDataSet set1 = (LineDataSet) chart.getData().getDataSetByIndex(0);
 
+                    Log.e("DATA", values.toString());
 
                     set1.setValues(values);
                     set1.notifyDataSetChanged();
@@ -161,23 +168,17 @@ public class MainActivity extends AppCompatActivity {
                     chart.notifyDataSetChanged();
 
                     // draw points over time
-                    chart.animateXY(3000, 0, Easing.EaseOutCubic);
+                    //chart.animateXY(3000, 0, Easing.EaseOutCubic);
 
 
-                }, error -> Log.e("API error", error.toString()));
+                }, error -> Toast.makeText(MainActivity.this, error.getMessage(), Toast.LENGTH_LONG).show());
 
         queue.add(stringRequest);
 
 
         LineDataSet set1;
 
-        if (chart.getData() != null && chart.getData().getDataSetCount() > 0) {
-            set1 = (LineDataSet) chart.getData().getDataSetByIndex(0);
-            set1.setValues(new ArrayList<>());
-            set1.notifyDataSetChanged();
-            chart.getData().notifyDataChanged();
-            chart.notifyDataSetChanged();
-        } else {
+        if (chart.getData() == null || chart.getData().getDataSetCount() <= 0) {
             // create a dataset and give it a type
             set1 = new LineDataSet(new ArrayList<>(), "Temperatur (in C°)");
 
@@ -185,8 +186,9 @@ public class MainActivity extends AppCompatActivity {
             set1.setColor(Color.BLACK);
 
             // line thickness
-            set1.setLineWidth(2f);
+            set1.setLineWidth(4f);
             set1.setDrawCircles(false);
+            set1.setMode(LineDataSet.Mode.CUBIC_BEZIER);
 
             // customize legend entry
             set1.setFormLineWidth(2f);
@@ -203,8 +205,38 @@ public class MainActivity extends AppCompatActivity {
             // create a data object with the data sets
             LineData data = new LineData(dataSets);
 
+
+
             // set data
             chart.setData(data);
         }
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == R.id.info) {
+            showImage();
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+
+
+    public void showImage() {
+        Dialog builder = new Dialog(this);
+        builder.setContentView(getLayoutInflater().inflate(R.layout.info_dialog, null));
+        builder.show();
+    }
+
+
+
 }
