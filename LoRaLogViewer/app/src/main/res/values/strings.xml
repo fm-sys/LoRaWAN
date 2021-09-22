@@ -1,4 +1,5 @@
 <resources>
+    <string name="app_name_short">Log Viewer</string>
     <string name="app_name">LoRa Log Viewer</string>
     <string name="info">Info</string>
 </resources>
