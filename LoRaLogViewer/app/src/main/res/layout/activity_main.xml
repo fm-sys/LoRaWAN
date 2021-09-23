@@ -29,7 +29,7 @@
         android:id="@+id/last_update_desc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="last update"
+        android:text="@string/last_update"
         android:layout_below="@id/current_value"/>
 
     <TextView
@@ -45,7 +45,7 @@
         android:id="@+id/current_value_desc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="current temperature"
+        android:text="@string/current_temperature"
         android:layout_below="@id/current_value"
         android:layout_alignParentEnd="true"/>
 

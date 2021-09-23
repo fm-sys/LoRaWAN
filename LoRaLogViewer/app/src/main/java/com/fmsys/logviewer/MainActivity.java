@@ -23,11 +23,13 @@ import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.LimitLine;
+import com.github.mikephil.charting.components.MarkerView;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 
 import org.json.JSONArray;
@@ -39,6 +41,9 @@ import java.util.Date;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final SimpleDateFormat formatter_HHmm = new SimpleDateFormat("HH:mm", Locale.GERMANY);
+    private static final SimpleDateFormat formatter_ddMMyyyy = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY);
 
     LineChart chart;
 
@@ -58,24 +63,29 @@ public class MainActivity extends AppCompatActivity {
         chart.getDescription().setEnabled(false);
 
         // enable touch gestures
-        chart.setTouchEnabled(true);
         chart.setDrawGridBackground(true);
-
-//        // create marker to display box when values are selected
-//        MyMarkerView mv = new MyMarkerView(this, R.layout.custom_marker_view);
-//
-//        // Set the marker to the chart
-//        mv.setChartView(chart);
-//        chart.setMarker(mv);
 
         // enable scaling and dragging
         chart.setDragEnabled(true);
         chart.setScaleEnabled(true);
 
+        // create marker to display box when values are selected
+        MarkerView mv = new ChartMarkerView(this, R.layout.marker_view);
+        mv.setChartView(chart);
+        chart.setMarker(mv);
+
 
         XAxis xAxis = chart.getXAxis();
         YAxis yAxis = chart.getAxisLeft();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setGranularity(1); // smallest allowed step
+
+        xAxis.setValueFormatter(new ValueFormatter() {
+            @Override
+            public String getFormattedValue(float value) {
+                return formatter_HHmm.format(new Date((long) value * 1000));
+            }
+        });
 
 
         // disable dual axis (only use LEFT axis)
@@ -84,23 +94,23 @@ public class MainActivity extends AppCompatActivity {
 
         // // Create Limit Lines // //
 
-        LimitLine ll1 = new LimitLine(150f, "Upper Limit");
-        ll1.setLineWidth(4f);
-        ll1.enableDashedLine(10f, 10f, 0f);
-        ll1.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_TOP);
-
-        LimitLine ll2 = new LimitLine(-30f, "Lower Limit");
-        ll2.setLineWidth(4f);
-        ll2.enableDashedLine(10f, 10f, 0f);
-        ll2.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_BOTTOM);
-
-        // draw limit lines behind data instead of on top
-        yAxis.setDrawLimitLinesBehindData(true);
-        xAxis.setDrawLimitLinesBehindData(true);
-
-        // add limit lines
-        yAxis.addLimitLine(ll1);
-        yAxis.addLimitLine(ll2);
+//        LimitLine ll1 = new LimitLine(150f, "Upper Limit");
+//        ll1.setLineWidth(4f);
+//        ll1.enableDashedLine(10f, 10f, 0f);
+//        ll1.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_TOP);
+//
+//        LimitLine ll2 = new LimitLine(-30f, "Lower Limit");
+//        ll2.setLineWidth(4f);
+//        ll2.enableDashedLine(10f, 10f, 0f);
+//        ll2.setLabelPosition(LimitLine.LimitLabelPosition.RIGHT_BOTTOM);
+//
+//        // draw limit lines behind data instead of on top
+//        yAxis.setDrawLimitLinesBehindData(true);
+//        xAxis.setDrawLimitLinesBehindData(true);
+//
+//        // add limit lines
+//        yAxis.addLimitLine(ll1);
+//        yAxis.addLimitLine(ll2);
 
         // add data
         setData();
@@ -151,8 +161,8 @@ public class MainActivity extends AppCompatActivity {
 
 
                     ((TextView) findViewById(R.id.last_update)).setText(DateUtils.isToday(lastUpdate.getTime()) ?
-                            new SimpleDateFormat("HH:mm", Locale.GERMANY).format(lastUpdate) :
-                            new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format(lastUpdate));
+                            formatter_HHmm.format(lastUpdate) :
+                            formatter_ddMMyyyy.format(lastUpdate));
                     TooltipCompat.setTooltipText(findViewById(R.id.last_update), lastUpdate.toString());
 
                     ((TextView) findViewById(R.id.current_value)).setText(latestEntry.getY() + " °C");
@@ -183,8 +193,6 @@ public class MainActivity extends AppCompatActivity {
 
             // text size of values: 0 -> no text
             set1.setValueTextSize(0f);
-
-            set1.setHighlightEnabled(false);
 
             ArrayList<ILineDataSet> dataSets = new ArrayList<>();
             dataSets.add(set1); // add the data sets
