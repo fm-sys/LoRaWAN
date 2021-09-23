@@ -20,8 +20,9 @@ RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
 //temp messure pins
 float currentTemperature = 0.0;
-int oneWireBusPin = 3;
-
+int oneWireBusPin = 5; // define the 1 wire bus pin
+int virtualVCC = 4;
+int virtualGND = 3;
 
 OneWire oneWireBus(oneWireBusPin);                 // create an instance of the OneWire Library and define the oneWireBusPin in it
 DallasTemperature temperatureSensor(&oneWireBus);  // create an instance of the Dallastemperature Library and define the OneWire instance oneWireBus in it
@@ -29,6 +30,15 @@ DeviceAddress temperatureSensorAddress;            // temperatureDeviceAddress i
 int connectedDevicesNomber = 0;
 
 void setup() {
+  // misuse some digital pins so that we can avoid additional wiring
+  // additional 5V power supply
+  pinMode(virtualVCC, OUTPUT);
+  digitalWrite(virtualVCC, HIGH);
+  // additional GND pin
+  pinMode(virtualGND, OUTPUT);
+  digitalWrite(virtualGND, LOW);
+
+
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
 
@@ -60,9 +70,9 @@ void setup() {
     Serial.println(" bit");
   }
 
- Serial.print("Temperature: ");
- Serial.print(temperatureSensor.getTempC(temperatureSensorAddress));
- Serial.println(" C");
+  Serial.print("Temperature: ");
+  Serial.print(temperatureSensor.getTempC(temperatureSensorAddress));
+  Serial.println(" C");
 
 
 
@@ -82,14 +92,9 @@ void setup() {
   Serial.print("Set Freq to: ");
   Serial.println(RF95_FREQ);
 
-// This sets the power of the transciever. max is 23 apparantly.
-// Warning: setting Tx power to 20 runs the risk of making your chip very hot!  Datasheet cautions not to use a duty cycle of more than 1%.
-rf95.setTxPower(15, false);
-
-
-
-
-
+  // This sets the power of the transciever. max is 23 apparantly.
+  // Warning: setting Tx power to 20 runs the risk of making your chip very hot!  Datasheet cautions not to use a duty cycle of more than 1%.
+  rf95.setTxPower(15, false);
 }
 
 void loop() {
@@ -117,12 +122,11 @@ void loop() {
 
 
 
-  delay(10 * 1000); // sec in ms
+  delay(10 * 1000);  // sec in ms
 }
 
-void printDeviceAddress(DeviceAddress deviceAddress){
-  for (int i = 0; i < 8; i++)
-  {
+void printDeviceAddress(DeviceAddress deviceAddress) {
+  for (int i = 0; i < 8; i++) {
     Serial.print("0x");
     if (deviceAddress[i] < 0x10) Serial.print("0");
     Serial.print(deviceAddress[i], HEX);

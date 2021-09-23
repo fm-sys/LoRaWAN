@@ -20,13 +20,22 @@
 #include <OneWire.h>
 
 float currentTemperature = 0.0;                                                           // define the current temperature variable
-int oneWireBusPin = 13;                                                                    // define the 1 wire bus pin
+int oneWireBusPin = 5;                                                                    // define the 1 wire bus pin
+int vcc2 = 4;
+int gnd2 = 3;
 OneWire oneWireBus(oneWireBusPin);                                                        // create an instance of the OneWire Library and define the oneWireBusPin in it 
 DallasTemperature temperatureSensor(&oneWireBus);                                         // create an instance of the Dallastemperature Library and define the OneWire instance oneWireBus in it
 DeviceAddress temperatureSensorAddress;                                                   // temperatureDeviceAddress is an uint8_t array [8]
 int connectedDevicesNomber = 0;
 
 void setup() {
+
+pinMode(vcc2, OUTPUT);
+digitalWrite(vcc2, HIGH); // misuse digital output as second 5V power supply pin
+
+pinMode(gnd2, OUTPUT);
+digitalWrite(gnd2, LOW); // misuse digital output as additional GND pin
+
 Serial.begin(9600);                                                                       // start the serial monitor
 Serial.println("Welcome to WellTronic's temperature sensor tutorial");                    // print the text "Welcome to WellTronic's temperature sensor tutorial" into the serial monitor        
   
