@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.TooltipCompat;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -73,23 +74,12 @@ public class MainActivity extends AppCompatActivity {
 
 
         XAxis xAxis = chart.getXAxis();
+        YAxis yAxis = chart.getAxisLeft();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
 
-            // vertical grid lines
-            //xAxis.enableGridDashedLine(10f, 10f, 0f);
 
-
-        YAxis yAxis = chart.getAxisLeft();
-
-            // disable dual axis (only use LEFT axis)
-            chart.getAxisRight().setEnabled(false);
-
-            // horizontal grid lines
-            //yAxis.enableGridDashedLine(10f, 10f, 0f);
-
-            // axis range
-            //yAxis.setAxisMaximum(200f);
-            //yAxis.setAxisMinimum(-50f);
+        // disable dual axis (only use LEFT axis)
+        chart.getAxisRight().setEnabled(false);
 
 
         // // Create Limit Lines // //
@@ -111,18 +101,12 @@ public class MainActivity extends AppCompatActivity {
         // add limit lines
         yAxis.addLimitLine(ll1);
         yAxis.addLimitLine(ll2);
-        //xAxis.addLimitLine(llXAxis);
-
-
-
 
         // add data
         setData();
 
-        // get the legend (only possible after setting data)
+        // legend (only possible after setting data)
         Legend l = chart.getLegend();
-
-        // draw legend entries as lines
         l.setForm(Legend.LegendForm.LINE);
 
     }
@@ -131,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url ="https://iotplotter.com/api/v2/feed/829369784150976580";
+        String url = "https://iotplotter.com/api/v2/feed/829369784150976580";
 
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 response -> {
@@ -169,6 +153,8 @@ public class MainActivity extends AppCompatActivity {
                     ((TextView) findViewById(R.id.last_update)).setText(DateUtils.isToday(lastUpdate.getTime()) ?
                             new SimpleDateFormat("HH:mm", Locale.GERMANY).format(lastUpdate) :
                             new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY).format(lastUpdate));
+                    TooltipCompat.setTooltipText(findViewById(R.id.last_update), lastUpdate.toString());
+
                     ((TextView) findViewById(R.id.current_value)).setText(latestEntry.getY() + " °C");
 
 
@@ -206,8 +192,6 @@ public class MainActivity extends AppCompatActivity {
             // create a data object with the data sets
             LineData data = new LineData(dataSets);
 
-
-
             // set data
             chart.setData(data);
         }
@@ -230,14 +214,9 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-
-
     public void showImage() {
         Dialog builder = new Dialog(this);
         builder.setContentView(getLayoutInflater().inflate(R.layout.info_dialog, null));
         builder.show();
     }
-
-
-
 }
