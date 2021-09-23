@@ -9,28 +9,39 @@ co2: https://learn.adafruit.com/adafruit-sgp30-gas-tvoc-eco2-mox-sensor/arduino-
 
 */
 #include <DallasTemperature.h>
+#include <Adafruit_SGP30.h>
 #include <OneWire.h>
 #include <RH_RF95.h>
+
+//unique device deviceIdentifier - should be in syntax "dxxx", e.g. "d1", "d2", ...
+#define deviceIdentifier "d1"
+
+//Temp sensor pins
+#define oneWireBusPin 5 // define the 1 wire bus pin
+#define virtualVCC 4    // a virtual +5V pin
+#define virtualGND 3    // a virtual GND pin
 
 //Radio pinout setup
 #define RFM95_CS 10
 #define RFM95_RST 9
 #define RFM95_INT 2
 
+//Radio frequency setup
 #define RF95_FREQ 868.0
 
+//Radio init
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
 
-//temp messure pins
-float currentTemperature = 0.0;
-int oneWireBusPin = 5; // define the 1 wire bus pin
-int virtualVCC = 4;
-int virtualGND = 3;
-
-OneWire oneWireBus(oneWireBusPin);                 // create an instance of the OneWire Library and define the oneWireBusPin in it
-DallasTemperature temperatureSensor(&oneWireBus);  // create an instance of the Dallastemperature Library and define the OneWire instance oneWireBus in it
-DeviceAddress temperatureSensorAddress;            // temperatureDeviceAddress is an uint8_t array [8]
+//Temp sensor init
+OneWire oneWireBus(oneWireBusPin);
+DallasTemperature temperatureSensor(&oneWireBus);
+DeviceAddress temperatureSensorAddress;
 int connectedDevicesNomber = 0;
+float currentTemperature = 0.0;
+
+//CO2 sensor init
+Adafruit_SGP30 sgp;
+
 
 void setup() {
   // misuse some digital pins so that we can avoid additional wiring
@@ -51,7 +62,10 @@ void setup() {
   delay(100);
 
 
-
+if (! sgp.begin()){
+    Serial.println("CO2 sensor not found");
+    while (1);
+  }
 
 
 
@@ -102,11 +116,27 @@ void setup() {
 
 void loop() {
 
+  if (! sgp.IAQmeasure()) {
+    Serial.println("CO2 measurement failed");
+    return;
+  }
+
+  // ----------- TODO: make multiple messurements and sent average -----------
+  char co2strBuffer[4];                         // create buffer
+  itoa(sgp.eCO2, co2strBuffer, 10);             // convert int to str
+
+
+
   temperatureSensor.requestTemperaturesByAddress(temperatureSensorAddress);   // command for a device with a specific address to perform a temperature conversion (to read the temperature)
   currentTemperature = temperatureSensor.getTempC(temperatureSensorAddress);  // Get temperature for device index in C (Slow process)
 
-  char radiopacket[20];                            // create buffer
-  dtostrf(currentTemperature, 5, 2, radiopacket);  // write to buffer
+  char radiopacket[20];                            // create radiopacket
+  dtostrf(currentTemperature, 5, 2, radiopacket);  // write formated float to radiopacket
+  strcat(radiopacket, "|");                        // append string to radiopacket
+  strcat(radiopacket, co2strBuffer);               // append co2 str to radiopacket
+  strcat(radiopacket, "|");                        // append string to radiopacket
+  strcat(radiopacket, deviceIdentifier);               // append device identifier to radiopacket
+
 
   Serial.print("Send '");
   Serial.print(radiopacket);
