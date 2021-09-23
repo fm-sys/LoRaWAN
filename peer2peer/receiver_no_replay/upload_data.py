@@ -8,11 +8,19 @@ import serial.tools.list_ports as list_ports
 # to keep the API key secure, store it in a seperated file which is not contained in the git repository
 import apikeys
 
-
+last_value = 0.0
 
 def addData(value):
+    global last_value
+    
     # make sure, value is a float (e.g. 123.45)
     value = float(value)
+
+    if (last_value == value):
+        print("value has not changed. Return...")
+        return
+
+    last_value = value
 
 
     # create json payload
