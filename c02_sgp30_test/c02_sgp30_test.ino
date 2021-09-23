@@ -1,3 +1,7 @@
+/*
+https://learn.adafruit.com/adafruit-sgp30-gas-tvoc-eco2-mox-sensor/arduino-code
+*/
+
 #include <Wire.h>
 #include <Adafruit_SGP30.h>
 

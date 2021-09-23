@@ -3,6 +3,9 @@ Copied from https://github.com/Apress/begin-lora-radio-networks-with-arduino/blo
 in the book "Beginning LoRa Radio Networks with Arduino: Build Long Range, Low Power Wireless IoT Networks by Pradeeka Seneviratne (Apress, 2019)".
 
 Temp messure DS18B20: https://www.youtube.com/watch?v=UY4zOXchK4w
+1-Wire Protocol: https://playground.arduino.cc/Learning/OneWire-DE/
+
+co2: https://learn.adafruit.com/adafruit-sgp30-gas-tvoc-eco2-mox-sensor/arduino-code
 
 */
 #include <DallasTemperature.h>
