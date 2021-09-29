@@ -7,6 +7,7 @@ RadioHead Packet Radio library for embedded microprocessors - documentation: htt
 */
 #include <SPI.h>
 #include <RH_RF95.h>
+#include <LiquidCrystal_I2C.h>
  
 #define RFM95_CS 10
 #define RFM95_RST 9
@@ -15,11 +16,21 @@ RadioHead Packet Radio library for embedded microprocessors - documentation: htt
 #define RF95_FREQ 868.0
 
 RH_RF95 rf95(RFM95_CS, RFM95_INT);
+LiquidCrystal_I2C lcd(0x27, 20, 4);
+
 
 #define LED 13
+
+int packageID = 0;
+uint8_t old_buf[RH_RF95_MAX_MESSAGE_LEN];
  
 void setup() 
 {
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0,0);
+  lcd.print("Init...");
+
   pinMode(LED, OUTPUT);     
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
@@ -50,6 +61,8 @@ void setup()
   Serial.println("----------------------------");
  
   rf95.setTxPower(23, false);
+
+  lcd.print("Ready!");
 }
  
 void loop()
@@ -69,8 +82,43 @@ void loop()
       Serial.println((char*)buf);
       //Serial.println("'");
 
-      //Serial.print("RSSI: ");
+      packageID++;
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("ID: #");
+      lcd.print(packageID);
+
+      lcd.print("  RSSI: ");
+      lcd.print(rf95.lastRssi());
+
+            //Serial.print("RSSI: ");
       //Serial.println(rf95.lastRssi(), DEC);
+
+
+      lcd.setCursor(0,1);
+      //lcd.print("\"");
+      lcd.print("Daten: ");
+      lcd.print((char*)buf);
+      //lcd.print("\"");
+
+      if (packageID > 1) {
+        lcd.setCursor(0,2);
+      lcd.print("Vorheriges Paket:");
+      lcd.setCursor(0,3);
+      //lcd.print("\"");
+      lcd.print((char*)old_buf);
+      //lcd.print("\"");
+      }
+
+      // reset old buffer
+      for(int i = strlen((char*)old_buf); i>=0; i--) {
+        old_buf[i] = '\0'; 
+      }
+      for(int i = strlen((char*)buf); i>=0; i--) {
+        old_buf[i] = buf[i]; 
+      }
+
+
     }
     else
     {
