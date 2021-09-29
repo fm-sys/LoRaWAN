@@ -12,14 +12,12 @@ co2: https://learn.adafruit.com/adafruit-sgp30-gas-tvoc-eco2-mox-sensor/arduino-
 #include <Adafruit_SGP30.h>
 #include <OneWire.h>
 #include <RH_RF95.h>
-
-//unique device deviceIdentifier - should be in syntax "dxxx", e.g. "d1", "d2", ...
-#define deviceIdentifier "d1"
+#include <EEPROM.h>
 
 //Temp sensor pins
-#define oneWireBusPin 5 // define the 1 wire bus pin
-#define virtualVCC 4    // a virtual +5V pin
-#define virtualGND 3    // a virtual GND pin
+#define oneWireBusPin 5  // define the 1 wire bus pin
+#define virtualVCC 4     // a virtual +5V pin
+#define virtualGND 3     // a virtual GND pin
 
 //Radio pinout setup
 #define RFM95_CS 10
@@ -43,6 +41,10 @@ float currentTemperature = 0.0;
 Adafruit_SGP30 sgp;
 
 
+char deviceIdString[4] = "d";  //number will be read and appended from EEPROM
+
+
+
 void setup() {
   // misuse some digital pins so that we can avoid additional wiring
   // additional 5V power supply
@@ -56,18 +58,25 @@ void setup() {
   pinMode(RFM95_RST, OUTPUT);
   digitalWrite(RFM95_RST, HIGH);
 
-  while (!Serial)
-    ;
   Serial.begin(9600);
   delay(100);
 
+  // read/generate deviceIdString
+  char buf[3];
+  int device_identifier;
+  EEPROM.get(0, device_identifier);
+  itoa(device_identifier, buf, 10);  // convert int to str
+  strcat(deviceIdString, buf);       // append buf to deviceIdString
 
-if (! sgp.begin()){
+  Serial.print("device_identifier: '");
+  Serial.print(deviceIdString);
+  Serial.println("'");
+
+
+  if (!sgp.begin()) {
     Serial.println("CO2 sensor not found");
-    while (1);
+    //while (1);
   }
-
-
 
 
   temperatureSensor.begin();  // start the bus
@@ -111,31 +120,37 @@ if (! sgp.begin()){
 
   // This sets the power of the transciever. max is 23 apparantly.
   // Warning: setting Tx power to 20 runs the risk of making your chip very hot!  Datasheet cautions not to use a duty cycle of more than 1%.
-  rf95.setTxPower(15, false);
+  rf95.setTxPower(1, false);//15
 }
 
 void loop() {
 
-  if (! sgp.IAQmeasure()) {
-    Serial.println("CO2 measurement failed");
-    return;
+  char co2strBuffer[4];  // create buffer
+
+  if (sgp.IAQmeasure()) {
+    // ----------- TODO: make multiple messurements and sent average -----------
+    itoa(sgp.eCO2, co2strBuffer, 10);  // convert int to str
+  } else {
+    itoa(-1, co2strBuffer, 10);
   }
 
-  // ----------- TODO: make multiple messurements and sent average -----------
-  char co2strBuffer[4];                         // create buffer
-  itoa(sgp.eCO2, co2strBuffer, 10);             // convert int to str
+
 
 
 
   temperatureSensor.requestTemperaturesByAddress(temperatureSensorAddress);   // command for a device with a specific address to perform a temperature conversion (to read the temperature)
   currentTemperature = temperatureSensor.getTempC(temperatureSensorAddress);  // Get temperature for device index in C (Slow process)
 
-  char radiopacket[20];                            // create radiopacket
-  dtostrf(currentTemperature, 5, 2, radiopacket);  // write formated float to radiopacket
-  strcat(radiopacket, "|");                        // append string to radiopacket
-  strcat(radiopacket, co2strBuffer);               // append co2 str to radiopacket
-  strcat(radiopacket, "|");                        // append string to radiopacket
-  strcat(radiopacket, deviceIdentifier);               // append device identifier to radiopacket
+  char radiopacket[20] = "";                              // create radiopacket initialized with device identifier
+  char temperature_buffer[6];                             // create temperature_buffer
+  dtostrf(currentTemperature, 5, 2, temperature_buffer);  // write formated float to temperature_buffer
+
+  strcat(radiopacket, deviceIdString);      // append deviceIdString to radiopacket
+  strcat(radiopacket, "|");                 // append string to radiopacket
+  strcat(radiopacket, temperature_buffer);  // append temperature to radiopacket
+  strcat(radiopacket, "|");                 // append string to radiopacket
+  strcat(radiopacket, co2strBuffer);        // append co2 str to radiopacket
+
 
 
   Serial.print("Send '");

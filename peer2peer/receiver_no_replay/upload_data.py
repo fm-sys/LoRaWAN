@@ -12,9 +12,16 @@ last_value = 0.0
 
 def addData(value):
     global last_value
-    
-    # make sure, value is a float (e.g. 123.45)
-    value = float(value)
+
+    ####################################
+    # convert temp data to float (e.g. 12.3)
+    ####################################
+    #
+    # Data format:
+    # 'd1|24.06|433'
+    #
+    ####################################
+    value = float(value.split("|")[1])
 
     if (last_value == value):
         print("value has not changed. Return...")
@@ -80,7 +87,7 @@ print("Serial communication is ready!")
 try:
     while True:
         try:
-            line_value = ser.readline()
+            line_value = ser.readline().decode()
             print (line_value)
             addData(line_value)
                 
