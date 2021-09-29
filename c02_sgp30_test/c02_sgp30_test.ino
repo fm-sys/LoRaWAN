@@ -19,7 +19,7 @@ uint32_t getAbsoluteHumidity(float temperature, float humidity) {
 }
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   while (!Serial) { delay(10); } // Wait for serial console to open!
 
 pinMode(4, OUTPUT);
