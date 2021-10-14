@@ -3,5 +3,5 @@
     <string name="app_name">LoRa Log Viewer</string>
     <string name="info">Info</string>
     <string name="last_update">last update</string>
-    <string name="current_temperature">current temperature</string>
+    <string name="current_temperature">last value</string>
 </resources>

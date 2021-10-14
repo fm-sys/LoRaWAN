@@ -120,7 +120,7 @@ void setup() {
 
   // This sets the power of the transciever. max is 23 apparantly.
   // Warning: setting Tx power to 20 runs the risk of making your chip very hot!  Datasheet cautions not to use a duty cycle of more than 1%.
-  rf95.setTxPower(1, false);//15
+  rf95.setTxPower(15, false);
 }
 
 void loop() {

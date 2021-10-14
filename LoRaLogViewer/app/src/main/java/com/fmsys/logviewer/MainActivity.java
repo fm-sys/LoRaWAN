@@ -8,12 +8,16 @@ import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.TooltipCompat;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -31,21 +35,32 @@ import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.google.android.material.datepicker.MaterialDatePicker;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
+import java.util.TimeZone;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final SimpleDateFormat formatter_HHmm = new SimpleDateFormat("HH:mm", Locale.GERMANY);
+    private static final SimpleDateFormat formatter_ddMMyy = new SimpleDateFormat("dd.MM.yy", Locale.GERMANY);
     private static final SimpleDateFormat formatter_ddMMyyyy = new SimpleDateFormat("dd.MM.yyyy", Locale.GERMANY);
 
     LineChart chart;
+    SwipeRefreshLayout refreshLayout;
+    Button button;
+    String currentChart = "d1_Temperatur";
+    Long timestamp = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,6 +68,12 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         setTitle(R.string.app_name);
 
+        refreshLayout = findViewById(R.id.swipe_refresh);
+        refreshLayout.setOnRefreshListener(this::setData);
+
+        button = findViewById(R.id.set_date);
+        button.setText(formatter_ddMMyyyy.format(new Date()));
+        button.setOnClickListener(v -> changeDateDialog());
 
         chart = findViewById(R.id.chart);
 
@@ -121,24 +142,47 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void changeDateDialog() {
+        final MaterialDatePicker<Long> dateDialog = MaterialDatePicker.Builder
+                .datePicker()
+                .setSelection(timestamp == null ? null : timestamp * 1000)
+                .build();
+        dateDialog.addOnPositiveButtonClickListener(newTimestampMillis -> {
+            timestamp = newTimestampMillis / 1000;
+            button.setText(formatter_ddMMyyyy.format(new Date(newTimestampMillis)));
+            // trigger refresh
+            setData();
+        });
+        dateDialog.show(getSupportFragmentManager(), "date_dialog");
+    }
+
     private void setData() {
 
 
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "https://iotplotter.com/api/v2/feed/829369784150976580";
+        String url = "https://iotplotter.com/api/v2/feed/829369784150976580?epoch=" + timestamp;
 
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 response -> {
                     ArrayList<Entry> values = new ArrayList<>();
+                    Set<String> graphs = new HashSet<>();
 
                     try {
                         JSONObject responseObject = new JSONObject(response);
-                        JSONArray js = responseObject.names();  //getJSONObject("commit").getJSONObject("committer").getString("date");
+                        JSONArray js = responseObject.names();
                         assert js != null;
                         for (int i = 0; i < js.length(); i++) {
                             JSONObject dataObject = responseObject.getJSONObject(js.getString(i)).getJSONObject("data");
-                            values.add(new Entry(js.getInt(i), (float) dataObject.getDouble("Temperatur")));
 
+                            JSONArray graphNames = dataObject.names();
+                            assert graphNames != null;
+                            for (int j = 0; j < graphNames.length(); j++) {
+                                graphs.add(graphNames.getString(j));
+
+                                if (graphNames.getString(j).equals(currentChart)) {
+                                    values.add(new Entry(js.getInt(i), (float) dataObject.getDouble(currentChart)));
+                                }
+                            }
                         }
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -146,7 +190,22 @@ public class MainActivity extends AppCompatActivity {
 
                     LineDataSet set1 = (LineDataSet) chart.getData().getDataSetByIndex(0);
 
-                    Log.e("DATA", values.toString());
+                    Log.d("DATA", values.toString());
+                    Log.d("GRAPHS", graphs.toString());
+
+                    String[] array = graphs.toArray(new String[0]);
+                    Arrays.sort(array);
+
+                    final ArrayAdapter<String> spinnerAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, array);
+                    ((Spinner) findViewById(R.id.chart_spinner)).setAdapter(spinnerAdapter);
+
+                    if (currentChart != null && graphs.contains(currentChart)) {
+                        final int spinnerPosition = Arrays.asList(array).indexOf(currentChart);
+                        ((Spinner) findViewById(R.id.chart_spinner)).setSelection(spinnerPosition);
+                    } else if (array.length > 0) {
+                        currentChart = array[0];
+                        setData();
+                    }
 
                     set1.setValues(values);
                     set1.notifyDataSetChanged();
@@ -156,16 +215,20 @@ public class MainActivity extends AppCompatActivity {
                     // draw points over time
                     chart.animateY(500, Easing.EaseOutCubic);
 
-                    Entry latestEntry = values.get(values.size() - 1);
-                    Date lastUpdate = new Date((long) (latestEntry.getX() * 1000));
+                    if (values.size() > 0) {
+                        Entry latestEntry = values.get(values.size() - 1);
+                        Date lastUpdate = new Date((long) (latestEntry.getX() * 1000));
 
 
-                    ((TextView) findViewById(R.id.last_update)).setText(DateUtils.isToday(lastUpdate.getTime()) ?
-                            formatter_HHmm.format(lastUpdate) :
-                            formatter_ddMMyyyy.format(lastUpdate));
-                    TooltipCompat.setTooltipText(findViewById(R.id.last_update), lastUpdate.toString());
+                        ((TextView) findViewById(R.id.last_update)).setText(DateUtils.isToday(lastUpdate.getTime()) ?
+                                formatter_HHmm.format(lastUpdate) :
+                                formatter_ddMMyy.format(lastUpdate));
+                        TooltipCompat.setTooltipText(findViewById(R.id.last_update), lastUpdate.toString());
 
-                    ((TextView) findViewById(R.id.current_value)).setText(latestEntry.getY() + " °C");
+                        ((TextView) findViewById(R.id.current_value)).setText(latestEntry.getY() + (currentChart.endsWith("CO2") ? " ppm" : " °C"));
+                    }
+
+                    refreshLayout.setRefreshing(false);
 
 
                 }, error -> Toast.makeText(MainActivity.this, error.getMessage(), Toast.LENGTH_LONG).show());

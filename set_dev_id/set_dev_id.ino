@@ -9,7 +9,7 @@
 
 #include <EEPROM.h>
 
-int device_identifier = 2;  //Variable to store in EEPROM.
+int device_identifier = 3;  //Variable to store in EEPROM.
 
 
 void setup() {
