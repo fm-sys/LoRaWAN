@@ -8,6 +8,8 @@ import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
@@ -60,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
     SwipeRefreshLayout refreshLayout;
     Button button;
     String currentChart = "d1_Temperatur";
-    Long timestamp = null;
+    Long timestamp = new Date().getTime() / 1000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
     private void changeDateDialog() {
         final MaterialDatePicker<Long> dateDialog = MaterialDatePicker.Builder
                 .datePicker()
-                .setSelection(timestamp == null ? null : timestamp * 1000)
+                .setSelection(timestamp * 1000)
                 .build();
         dateDialog.addOnPositiveButtonClickListener(newTimestampMillis -> {
             timestamp = newTimestampMillis / 1000;
@@ -207,6 +209,22 @@ public class MainActivity extends AppCompatActivity {
                         setData();
                     }
 
+                    ((Spinner) findViewById(R.id.chart_spinner)).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                            if (!array[position].equals(currentChart)) {
+                                currentChart = array[position];
+                                setData();
+                            }
+                        }
+
+                        @Override
+                        public void onNothingSelected(AdapterView<?> parentView) {
+                            // nothing
+                        }
+
+                    });
+
                     set1.setValues(values);
                     set1.notifyDataSetChanged();
                     chart.getData().notifyDataChanged();
@@ -231,7 +249,19 @@ public class MainActivity extends AppCompatActivity {
                     refreshLayout.setRefreshing(false);
 
 
-                }, error -> Toast.makeText(MainActivity.this, error.getMessage(), Toast.LENGTH_LONG).show());
+                }, error -> {
+            LineDataSet set1 = (LineDataSet) chart.getData().getDataSetByIndex(0);
+            set1.setValues(new ArrayList<>());
+            set1.notifyDataSetChanged();
+            chart.getData().notifyDataChanged();
+            chart.notifyDataSetChanged();
+            chart.animateY(0, Easing.EaseOutCubic);
+
+            ((TextView) findViewById(R.id.last_update)).setText("");
+            ((TextView) findViewById(R.id.current_value)).setText("");
+
+            Toast.makeText(MainActivity.this, R.string.no_data, Toast.LENGTH_LONG).show();
+        });
 
         queue.add(stringRequest);
 

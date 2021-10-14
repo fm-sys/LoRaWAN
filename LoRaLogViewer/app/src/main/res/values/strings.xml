@@ -4,4 +4,5 @@
     <string name="info">Info</string>
     <string name="last_update">last update</string>
     <string name="current_temperature">last value</string>
+    <string name="no_data">no data available</string>
 </resources>
