@@ -27,7 +27,7 @@ void setup() {
   Serial.println(sgp.serialnumber[2], HEX);
 
   // If you have a baseline measurement from before you can assign it to start, to 'self-calibrate'
-  //sgp.setIAQBaseline(0x8E68, 0x8F41);  // Will vary for each sensor!
+  sgp.setIAQBaseline(0x98C8, 0x9233);  // Will vary for each sensor!
 }
 
 int counter = 0;
