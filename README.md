@@ -1,4 +1,2 @@
-# LoRaWAN Projekt
- Daten- und Codeversionsverwaltung für das HEMS Q3 Projekt über LoRaWAN
-
-🔗 [Dragino Wiki Page](https://wiki.dragino.com/index.php?title=Lora_Shield)
+# LoRaWAN Project 2021
+ In this school project I have experimented with the so-called Long Range Wide Area Network (LoRaWAN) which might be a central component of future IoT networks.
